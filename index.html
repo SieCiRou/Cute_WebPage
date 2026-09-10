@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>海底通訊站 · 有一則訊息要給你 🫧</title>
+<style>
+  :root{
+    --shallow:#9fe7f0;
+    --lagoon:#17a7c9;
+    --deep:#0a6b8c;
+    --abyss:#04364a;
+    --sand:#f3dda4;
+    --sponge:#ffd23f;
+    --coral:#ff7a8a;
+    --seagrass:#2ec4a0;
+    --ink:#0b3a48;
+    --font:"PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; }
+
+  body{
+    margin:0;
+    font-family:var(--font);
+    color:var(--ink);
+    background:linear-gradient(180deg,var(--shallow) 0%,var(--lagoon) 32%,var(--deep) 66%,var(--abyss) 100%);
+    background-attachment:fixed;
+    min-height:100svh;
+    display:flex; align-items:center; justify-content:center;
+    padding:32px 18px 160px;
+    overflow-x:hidden;
+    position:relative;
+  }
+
+  /* 海水光束 */
+  .rays{
+    position:fixed; inset:-20% -30%;
+    background:repeating-linear-gradient(102deg,
+      rgba(255,255,255,.16) 0 22px, rgba(255,255,255,0) 22px 120px);
+    animation:drift 18s ease-in-out infinite alternate;
+    pointer-events:none; z-index:1;
+  }
+  @keyframes drift{ from{transform:translateX(-40px)} to{transform:translateX(40px)} }
+
+  /* 泡泡 */
+  .bubble{
+    position:fixed; bottom:-40px; border-radius:50%;
+    background:radial-gradient(circle at 32% 28%, rgba(255,255,255,.95), rgba(255,255,255,.14) 55%, rgba(255,255,255,.05));
+    border:1px solid rgba(255,255,255,.5);
+    pointer-events:none; z-index:2;
+    animation:rise linear forwards;
+  }
+  @keyframes rise{
+    0%{ transform:translateY(0) translateX(0); opacity:0 }
+    12%{ opacity:.9 }
+    100%{ transform:translateY(-108svh) translateX(var(--sway,20px)); opacity:0 }
+  }
+
+  /* 水母 */
+  .jelly{ position:fixed; z-index:2; pointer-events:none; opacity:.85; }
+  .jelly-a{ width:74px; left:6%; top:16%; animation:float 9s ease-in-out infinite; }
+  .jelly-b{ width:54px; right:8%; top:54%; animation:float 12s ease-in-out infinite reverse; }
+  @keyframes float{
+    0%,100%{ transform:translateY(0) rotate(-4deg) }
+    50%{ transform:translateY(-34px) rotate(5deg) }
+  }
+
+  /* 海床 */
+  .seabed{ position:fixed; left:0; right:0; bottom:-2px; width:100%; height:190px; z-index:3; pointer-events:none; }
+  .weed{ animation:sway 5s ease-in-out infinite; }
+  .weed:nth-of-type(even){ animation-duration:6.5s; animation-direction:reverse; }
+  @keyframes sway{ 0%,100%{ transform:rotate(-6deg) } 50%{ transform:rotate(7deg) } }
+
+  /* 主卡片 */
+  .card{
+    position:relative; z-index:10;
+    width:min(460px,100%);
+    background:rgba(255,255,255,.93);
+    border:4px solid var(--sponge);
+    border-radius:30px;
+    padding:34px 24px 30px;
+    box-shadow:0 22px 46px rgba(4,54,72,.38);
+    text-align:center;
+  }
+  .tag{
+    position:absolute; top:-20px; left:50%;
+    transform:translateX(-50%) rotate(-3deg);
+    background:#c98a4b; color:#fff8e7;
+    font-size:.82rem; letter-spacing:.08em;
+    padding:6px 18px; border-radius:10px;
+    border:2px solid #a86c34;
+    box-shadow:0 5px 0 rgba(0,0,0,.12);
+    white-space:nowrap;
+  }
+  h1{ margin:14px 0 6px; font-size:1.7rem; line-height:1.35; color:var(--deep); }
+  .from{ margin:0 0 22px; font-size:.95rem; color:#5c8494; }
+
+  /* 聲納主控台 */
+  .console{
+    background:#062a35; border-radius:16px; text-align:left;
+    overflow:hidden; box-shadow:inset 0 2px 10px rgba(0,0,0,.45);
+    margin-bottom:26px;
+  }
+  .console-bar{ display:flex; align-items:center; gap:7px; padding:9px 12px; background:#0d3f4e; }
+  .dot{ width:10px; height:10px; border-radius:50%; }
+  .console-bar .name{ margin-left:6px; color:#7fb6c6; font-size:.78rem; font-family:"Courier New",monospace; }
+  pre{
+    margin:0; padding:15px 14px 17px;
+    font-family:"Courier New",Courier,monospace;
+    font-size:.86rem; line-height:1.65; color:#d6f5fb;
+    white-space:pre-wrap; word-break:break-word;
+  }
+  .cmt{ color:#5f93a3; font-style:italic; }
+  .kw{ color:var(--sponge); }
+  .str{ color:var(--seagrass); }
+
+  /* 通關密語 */
+  .quiz-title{
+    margin:0 0 4px; font-size:1.05rem; font-weight:700; color:var(--deep);
+  }
+  .quiz-sub{ margin:0 0 16px; font-size:.87rem; color:#6b93a3; }
+
+  .btns{ display:flex; justify-content:center; gap:14px; flex-wrap:wrap; }
+  button{
+    font-family:inherit; font-size:1.05rem; font-weight:700;
+    border:none; border-radius:999px; padding:14px 26px; cursor:pointer;
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .choice-a{ background:var(--sponge); color:#7a5a00; box-shadow:0 6px 0 #d9ac1f; }
+  .choice-b{ background:var(--coral); color:#fff; box-shadow:0 6px 0 #e05a6c; }
+  .choice-a:hover,.choice-b:hover,.choice-a:focus-visible,.choice-b:focus-visible{ transform:translateY(-3px); }
+  .choice-a:active,.choice-b:active{ transform:translateY(3px); box-shadow:0 2px 0 rgba(0,0,0,.2); }
+  :focus-visible{ outline:3px solid var(--deep); outline-offset:3px; }
+
+  /* 成功畫面 */
+  .overlay{
+    display:none; position:fixed; inset:0; z-index:100;
+    background:linear-gradient(180deg,#bff0f6 0%,#5fd0e4 55%,#17a7c9 100%);
+    flex-direction:column; align-items:center; justify-content:flex-start;
+    text-align:center; padding:40px 20px 60px; overflow-y:auto;
+  }
+  .overlay.on{ display:flex; }
+  /* 通關後的泡泡層 */
+  .obubbles{ position:absolute; inset:0; overflow:hidden; pointer-events:none; z-index:0; }
+  .obubbles .bubble{ position:absolute; }
+  .overlay > *:not(.obubbles){ position:relative; z-index:1; }
+
+  /* 小鯨魚 */
+  .whale-wrap{ position:relative; width:160px; margin:0 auto 4px; }
+  .whale{ width:160px; display:block; animation:swim 4.5s ease-in-out infinite; }
+  @keyframes swim{
+    0%,100%{ transform:translate(-8px,0) rotate(-3deg) }
+    50%    { transform:translate(8px,-10px) rotate(3deg) }
+  }
+  .fin{ transform-origin:96px 84px; animation:flap 1.7s ease-in-out infinite; }
+  @keyframes flap{ 0%,100%{ transform:rotate(-10deg) } 50%{ transform:rotate(12deg) } }
+
+  .spout-heart{
+    position:absolute; font-size:20px; pointer-events:none;
+    animation:heartUp 2.4s ease-out forwards;
+  }
+  @keyframes heartUp{
+    0%  { transform:translateY(0) scale(.35); opacity:0 }
+    18% { opacity:1 }
+    100%{ transform:translateY(-130px) translateX(var(--hx,0)) scale(1.05) rotate(var(--hr,0deg)); opacity:0 }
+  }
+  .overlay h2{ font-size:1.9rem; margin:10px 0 4px; color:#08536b; }
+  .pass{ font-size:1.15rem; font-weight:700; color:#0b3a48; margin:0 0 10px; }
+  .overlay p.msg{ max-width:22em; margin:0 auto 26px; font-size:1.02rem; line-height:1.8; color:#0b3a48; }
+
+  /* 留言區 */
+  .reply{
+    width:min(420px,100%);
+    background:rgba(255,255,255,.94);
+    border:3px solid var(--sponge);
+    border-radius:22px;
+    padding:20px 18px;
+    box-shadow:0 14px 30px rgba(4,54,72,.25);
+    text-align:left;
+  }
+  .reply h3{ margin:0 0 4px; font-size:1.05rem; color:var(--deep); }
+  .reply .note{ margin:0 0 12px; font-size:.85rem; color:#6b93a3; }
+  textarea{
+    width:100%; min-height:110px; resize:vertical;
+    font-family:inherit; font-size:1rem; line-height:1.6;
+    padding:12px; border:2px solid #cfe6ee; border-radius:14px;
+    background:#f7fdff; color:var(--ink);
+  }
+  textarea:focus{ outline:none; border-color:var(--lagoon); }
+  .reply-btns{ display:flex; gap:10px; margin-top:12px; flex-wrap:wrap; }
+  .send{ background:var(--seagrass); color:#fff; box-shadow:0 5px 0 #1fa886; font-size:.98rem; padding:12px 20px; flex:1; }
+  .copy{ background:#e7f4f8; color:#0a6b8c; box-shadow:0 5px 0 #c6e2ea; font-size:.98rem; padding:12px 20px; }
+  .sent{ margin:12px 0 0; font-size:.88rem; color:var(--seagrass); font-weight:700; min-height:1.2em; }
+
+  @media (prefers-reduced-motion:reduce){ *{ animation:none !important; transition:none !important; } }
+</style>
+</head>
+<body>
+
+<div class="rays" aria-hidden="true"></div>
+
+<svg class="jelly jelly-a" viewBox="0 0 80 110" aria-hidden="true">
+  <ellipse cx="40" cy="44" rx="32" ry="26" fill="#ffc8d8" opacity=".8"/>
+  <g stroke="#ff9ab5" stroke-width="4" stroke-linecap="round" fill="none" opacity=".85">
+    <path d="M20 50c-3 14 5 20 1 34"/><path d="M33 52c-2 16 4 22 0 36"/>
+    <path d="M47 52c2 16-4 22 0 36"/><path d="M60 50c3 14-5 20-1 34"/>
+  </g>
+</svg>
+<svg class="jelly jelly-b" viewBox="0 0 80 110" aria-hidden="true">
+  <ellipse cx="40" cy="42" rx="30" ry="25" fill="#ffe08a" opacity=".8"/>
+  <g stroke="#f5c451" stroke-width="4" stroke-linecap="round" fill="none" opacity=".85">
+    <path d="M24 50c-3 14 5 20 1 32"/><path d="M40 52c-2 15 3 20 0 33"/>
+    <path d="M56 50c3 14-5 20-1 32"/>
+  </g>
+</svg>
+
+<svg class="seabed" viewBox="0 0 400 190" preserveAspectRatio="none" aria-hidden="true">
+  <g class="weed" style="transform-origin:38px 190px">
+    <path d="M38 190c-12-30 10-42-2-70 12 22 22 40 12 70z" fill="#2ec4a0"/></g>
+  <g class="weed" style="transform-origin:66px 190px">
+    <path d="M66 190c8-34-12-48 2-78-4 30 16 44 6 78z" fill="#1fa886"/></g>
+  <g class="weed" style="transform-origin:330px 190px">
+    <path d="M330 190c-10-36 12-46 0-74 10 26 20 40 10 74z" fill="#2ec4a0"/></g>
+  <g class="weed" style="transform-origin:358px 190px">
+    <path d="M358 190c6-28-10-40 3-64-3 24 13 36 5 64z" fill="#1fa886"/></g>
+  <path d="M150 190c-6-18-26-16-24-34 1-12 14-10 16-22 3 14 16 10 18 24 2 16-4 18-10 32z" fill="#ff7a8a" opacity=".9"/>
+  <path d="M0 150c46-16 78 12 122 4s70-28 118-20 74 26 160 14v42H0z" fill="#f3dda4"/>
+  <path d="M0 168c58-12 92 10 148 2s86-20 148-10c34 5 72 8 104 4v26H0z" fill="#e9cd8d"/>
+</svg>
+
+<main class="card">
+  <div class="tag">深海通訊站 · 未讀訊息 1</div>
+
+  <h1>有一則訊息，從海底浮上來了 🫧</h1>
+  <p class="from">傳送者：可愛的 Una</p>
+
+  <div class="console">
+    <div class="console-bar">
+      <i class="dot" style="background:#ff7a8a"></i>
+      <i class="dot" style="background:#ffd23f"></i>
+      <i class="dot" style="background:#2ec4a0"></i>
+      <span class="name">sonar.js</span>
+    </div>
+<pre><span class="cmt">// 深海掃描完成：偵測到全世界唯一的稀有物種</span>
+<span class="kw">while</span> (myLife.<span class="kw">has</span>(you)) {
+    love_level++;
+    <span class="kw">if</span> (love_level === <span class="str">"無限"</span>) {
+        <span class="kw">return</span> <span class="str">"一輩子不放手"</span>;
+    }
+}
+<span class="cmt">// 可以讓我當你永遠的 Debugger 嗎？</span></pre>
+  </div>
+
+  <p class="quiz-title">通關密語（二選一）</p>
+  <p class="quiz-sub">請問你是？選了才能解鎖訊息 🔐</p>
+
+  <div class="btns">
+    <button class="choice-a" type="button" data-key="brat">屁孩 😜</button>
+    <button class="choice-b" type="button" data-key="bf">可愛男友 🥰</button>
+  </div>
+</main>
+
+<div id="success" class="overlay">
+  <div class="obubbles" id="obubbles"></div>
+
+  <div class="whale-wrap" id="whaleWrap">
+    <svg class="whale" viewBox="0 0 160 120" aria-hidden="true">
+      <path d="M118 66c12-16 24-24 33-21 3 9-2 20-9 27 8 5 12 16 10 25-10 1-24-8-34-19z" fill="#4bb8da"/>
+      <ellipse cx="68" cy="70" rx="52" ry="33" fill="#5fc9e8"/>
+      <path d="M22 78c10 16 28 25 46 25s34-7 44-18c-10 12-26 20-44 20-19 0-36-10-46-27z" fill="#3fa9cf" opacity=".5"/>
+      <ellipse cx="66" cy="82" rx="40" ry="19" fill="#cdeffc"/>
+      <g class="fin"><ellipse cx="96" cy="84" rx="15" ry="9" fill="#4bb8da"/></g>
+      <circle cx="42" cy="62" r="4.5" fill="#0b3a48"/>
+      <circle cx="43.6" cy="60.4" r="1.6" fill="#fff"/>
+      <path d="M34 74c6 6 15 5 20-1" stroke="#0b3a48" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+      <ellipse cx="30" cy="72" rx="6" ry="4" fill="#ff9ab5" opacity=".55"/>
+      <path d="M58 40c-1-5 1-8 4-8" stroke="#3fa9cf" stroke-width="3" stroke-linecap="round" fill="none"/>
+    </svg>
+  </div>
+
+  <h2>訊號接通了！</h2>
+  <p class="pass">🎉 恭喜 Tom 過關</p>
+  <p class="msg" id="passLine"></p>
+
+  <div class="reply">
+    <h3>留言告訴 Una 💌</h3>
+    <p class="note">寫下你想說的話，按送出就會傳給她。</p>
+    <textarea id="note" placeholder="跟 Una 說一句話…"></textarea>
+    <div class="reply-btns">
+      <button class="send" type="button" id="sendBtn">送出給 Una</button>
+      <button class="copy" type="button" id="copyBtn">複製</button>
+    </div>
+    <p class="sent" id="sentMsg" aria-live="polite"></p>
+  </div>
+</div>
+
+<script>
+  /* ★★★ 改這一行：填入你的 Email，Tom 按「送出」就會開啟郵件 App ★★★ */
+  const UNA_EMAIL = "你的信箱@example.com";
+
+  const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function makeBubble(host){
+    const b = document.createElement('div');
+    b.className = 'bubble';
+    const size = 6 + Math.random() * 20;
+    b.style.width = b.style.height = size + 'px';
+    b.style.left = Math.random() * 100 + '%';
+    b.style.setProperty('--sway', (Math.random() * 80 - 40) + 'px');
+    b.style.animationDuration = (5 + Math.random() * 6) + 's';
+    (host || document.body).appendChild(b);
+    setTimeout(() => b.remove(), 12000);
+  }
+
+  /* 小鯨魚噴愛心 */
+  function spoutHearts(){
+    const wrap = document.getElementById('whaleWrap');
+    setInterval(() => {
+      const h = document.createElement('span');
+      h.className = 'spout-heart';
+      h.textContent = ['💙','💗','🫧','💖','🫧'][Math.floor(Math.random() * 5)];
+      h.style.left = (52 + Math.random() * 18) + 'px';
+      h.style.top  = '18px';
+      h.style.setProperty('--hx', (Math.random() * 70 - 35) + 'px');
+      h.style.setProperty('--hr', (Math.random() * 40 - 20) + 'deg');
+      wrap.appendChild(h);
+      setTimeout(() => h.remove(), 2600);
+    }, 460);
+  }
+  if (!calm) setInterval(makeBubble, 380);
+
+  const lines = {
+    brat: '密語正確：屁孩也是我的屁孩 😝<br>不管是 Bug 還是大浪，都有我幫你維護 🔧💙',
+    bf:   '密語正確：這題根本不用想 🥰<br>不管是 Bug 還是大浪，都有我幫你維護 🔧💙'
+  };
+
+  document.querySelectorAll('.btns button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.getElementById('passLine').innerHTML = lines[btn.dataset.key];
+      document.getElementById('success').classList.add('on');
+      if (calm) return;
+      const ob = document.getElementById('obubbles');
+      for (let i = 0; i < 50; i++) setTimeout(() => makeBubble(ob), i * 80);
+      setInterval(() => makeBubble(ob), 420);
+      spoutHearts();
+    });
+  });
+
+  const note = document.getElementById('note');
+  const sent = document.getElementById('sentMsg');
+
+  document.getElementById('sendBtn').addEventListener('click', () => {
+    const text = note.value.trim();
+    if (!text) { sent.textContent = '先寫點什麼再送出唷 🐠'; return; }
+    location.href = 'mailto:' + UNA_EMAIL +
+      '?subject=' + encodeURIComponent('海底通訊站：Tom 過關了 🐚') +
+      '&body=' + encodeURIComponent(text);
+    sent.textContent = '正在開啟郵件 App…';
+  });
+
+  document.getElementById('copyBtn').addEventListener('click', async () => {
+    const text = note.value.trim();
+    if (!text) { sent.textContent = '先寫點什麼再複製唷 🐠'; return; }
+    try {
+      await navigator.clipboard.writeText(text);
+      sent.textContent = '已複製，可以直接貼到 LINE 傳給 Una 💬';
+    } catch {
+      note.select();
+      sent.textContent = '已選取文字，長按選「複製」就可以了';
+    }
+  });
+</script>
+</body>
+</html>
